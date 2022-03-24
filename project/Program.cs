@@ -18,6 +18,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// seems this can set the route to use lowercase. not sure.
+// builder.Services.Configure<RouteOptions>(options =>
+// {
+//     options.LowercaseUrls = true;
+// });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
