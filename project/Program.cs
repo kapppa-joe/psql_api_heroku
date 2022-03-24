@@ -1,7 +1,18 @@
+using project.Data;
+using project.Models;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// for dev server, get the db conn string from env or setting file.
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+connectionString ??= builder.Configuration.GetConnectionString("DefaultConnection");
 
+builder.Services.AddDbContext<PsqlDbContext>(options => 
+    options.UseNpgsql(connectionString)
+);
+
+// Add services to the container.
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
