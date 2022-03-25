@@ -6,12 +6,12 @@ networks:
 
 services:
   web:
-    image: dotnetproject:latest
+    image: dotnetproject-dev:latest
     depends_on:
       - db
     build:
       context: ./project
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     volumes:
       - ./project:/app
     ports:
