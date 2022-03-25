@@ -1,0 +1,43 @@
+version: '3.3'
+
+networks:
+  dotnetproject-dev:
+    driver: bridge
+
+services:
+  web:
+    image: dotnetproject:latest
+    depends_on:
+      - db
+    build:
+      context: ./project
+      dockerfile: Dockerfile
+    volumes:
+      - ./project:/app
+    ports:
+      - 5002:5002
+    environment:
+      - ASPNETCORE_URLS=http://*:5002
+      - DB_CONNECTION_STRING=host=db;Port=5432;Database=dotnetproject;User Id=dotnet;Password=dotnet;
+    networks:
+      - dotnetproject-dev
+
+  db:
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=password
+      - APP_DB_USER=dotnet
+      - APP_DB_PASS=dotnet
+      - APP_DB_NAME=dotnetproject
+    volumes:
+      - db_volume:/var/lib/postgresql/data
+      - ./project/dbscripts:/docker-entrypoint-initdb.d/
+    networks:
+      - dotnetproject-dev
+
+volumes:
+  db_volume:
