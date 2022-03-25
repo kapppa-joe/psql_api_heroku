@@ -4,9 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// for dev server, get the db conn string from env or setting file.
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-connectionString ??= builder.Configuration.GetConnectionString("DefaultConnection");
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+{
+    // for dev server, get the db conn string from env or setting file.
+    connectionString ??= builder.Configuration.GetConnectionString("DefaultConnection");
+}
+else
+{
+    // if it is production, get the connection string from ENV VAR that Heroku supplies.
+    connectionString = ConfigurationHelper.GetHerokuConnectionString();
+}
 
 builder.Services.AddDbContext<PsqlDbContext>(options => 
     options.UseNpgsql(connectionString)
