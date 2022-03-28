@@ -5,6 +5,10 @@ public class ConfigurationHelper
     public static string GetHerokuConnectionString() {
         // Get the connection string from the ENV variables
         string connectionUrl = Environment.GetEnvironmentVariable("DATABASE_URL") ?? "";
+        
+        if (string.IsNullOrEmpty(connectionUrl)) {
+            return "";
+        }
 
         // parse the connection string
         var databaseUri = new Uri(connectionUrl);
