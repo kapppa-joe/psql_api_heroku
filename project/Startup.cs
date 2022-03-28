@@ -36,7 +36,7 @@ public class Startup
             options.AddPolicy("AllowAllOrigins",
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
         });
-
+        
         services.AddControllers();
     }
 
@@ -53,6 +53,8 @@ public class Startup
         app.UseRouting();
 
         app.UseAuthorization();
+        
+        app.UseCors();
 
         app.UseEndpoints((endpoints => { endpoints.MapControllers();}));
 
