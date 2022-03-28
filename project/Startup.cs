@@ -1,5 +1,7 @@
 using project.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 
 namespace project;
 
@@ -54,7 +56,7 @@ public class Startup
 
         app.UseAuthorization();
         
-        app.UseCors();
+        app.UseCors("AllowAllOrigins");
 
         app.UseEndpoints((endpoints => { endpoints.MapControllers();}));
 
