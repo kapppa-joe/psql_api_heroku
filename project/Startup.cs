@@ -14,20 +14,16 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        string connectionString = null;
-        string dbConnectionStringHeroku = ConfigurationHelper.GetHerokuConnectionString();
-        if (string.IsNullOrEmpty(dbConnectionStringHeroku))
+        // try grab the db connection string for Heroku first.
+        string connectionString = ConfigurationHelper.GetHerokuConnectionString();
+        
+        // if failed, try to grab a connection string from env (for docker dev)
+        if (string.IsNullOrEmpty(connectionString))
         {
-            // if cannot get db connection string for Heroku:
-            // first, try to grab a connection string from env (for docker dev)
-            connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
             // if not found in env, assume it is in local dev environment and use the db conn string from config file.
-            connectionString ??= Configuration.GetConnectionString("DefaultConnection");
-        }
-        else
-        {
-            // otherwise, just use the db connection string for Heroku.
-            connectionString = dbConnectionStringHeroku;
+            connectionString = 
+                Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
+                    ?? Configuration.GetConnectionString("DefaultConnection");
         }
         
         
