@@ -30,6 +30,12 @@ public class Startup
         services.AddDbContext<PsqlDbContext>(options =>
             options.UseNpgsql(connectionString)
         );
+        
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAllOrigins",
+                builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+        });
 
         services.AddControllers();
     }
