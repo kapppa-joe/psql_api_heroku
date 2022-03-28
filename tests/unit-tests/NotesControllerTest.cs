@@ -1,27 +1,51 @@
+using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Sqlite;
 
 using NUnit.Framework;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using project.Data;
 
 namespace unit_tests;
 public class TestNotesController
 {
     private HttpClient _httpClient;
-    private readonly WebApplicationFactory<project.Program> _factory;
+    private readonly WebApplicationFactory<project.Startup> _factory;
     
 
     public TestNotesController()
     {
-        _factory = new WebApplicationFactory<project.Program>();
+        
+        _factory = new WebApplicationFactory<project.Startup>().WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    // remove the dbcontext of actual postgres db and stub it with a in memory sqlite db
+                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof (DbContextOptions < PsqlDbContext > ));
+
+                    if (descriptor != null) {
+                        services.Remove(descriptor);
+                    }
+                    
+                    services.AddDbContext<PsqlDbContext>(opt =>
+                        opt.UseInMemoryDatabase("test_database"));
+                });
+            }
+        );
         _httpClient = _factory.CreateClient();
     }
 
     [SetUp]
     public void Setup()
     {
-        _httpClient = _factory.CreateClient();
+        _httpClient = _factory.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
     }
 
     [Test]
