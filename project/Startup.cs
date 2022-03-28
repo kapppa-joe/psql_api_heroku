@@ -2,6 +2,7 @@ using project.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
 namespace project;
 
@@ -38,7 +39,9 @@ public class Startup
             options.AddPolicy("AllowAllOrigins",
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
         });
-        
+
+        services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
         services.AddControllers();
     }
 
