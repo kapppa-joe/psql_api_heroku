@@ -31,14 +31,14 @@ jobs:
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+
 workflows:
-  build_and_test_deploy:: # This is the name of the workflow, feel free to change it to better match your workflow.
-    # Inside the workflow, you define the jobs you want to run.
+  build_and_test_deploy:
     jobs:
-      - build-and-test
+      - build_and_test
       - heroku/deploy-via-git:
-        requires:
-          - build_and_test
-        filters:
-          branches:
-            only: main
+          requires:
+            - build_and_test
+          filters:
+            branches:
+              only: main
