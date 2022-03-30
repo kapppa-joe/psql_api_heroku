@@ -1,9 +1,40 @@
-# Demo .NET webapi with postgres on Heroku
+# SfC Appointment System Backend Api
 
-A walking skeleton of webapi with .NET and postgres.
-I started this project to test deploying .NET and postgres app in Heroku.
+A Backend api for MadeTech Academy 2022 Jan Team Project.
+( Note: This project was created for study purpose. It is not related to any real-world service provided by Skills For Care)
 
-Hosted demo: https://sleepy-sands-79356.herokuapp.com/
+Hosted demo: https://skillsforcare-api.herokuapp.com/
+
+## To run on your local machine
+
+#### With docker-compose:
+```
+docker-compose up -d
+```
+This should starts a webapi server and postgres db embedded in docker.
+
+Visit http://localhost:5002 and you should see the base endpoint.
+
+After you played with it, remember to shutdown the server by `docker-compose down`.
+
+#### Without docker
+
+You need to setup a local postgres db at your machine first.
+
+After you have done that, open `project/appsettings.Development.json` and change the value of `DefaultConnection` to match the settings of your database.
+
+Then, you need to setup the table in your database.
+To do that, install [dotnet-ef tools](https://docs.microsoft.com/en-us/ef/core/cli/dotnet), then run the below command:
+
+```shell
+cd project
+dotnet ef database update --context PsqlDbContext 
+```
+
+After that, run `dotnet run` to start up the local server.
+
+
+
 
 
 [TODO]
@@ -34,6 +65,8 @@ heroku stack:set container
 ```
 
 #### to pass $PORT into docker locally:
+```shell
 cd project
 docker build -t dotnet-dockerapp-prod .
 docker run -d --rm -p 5002:5002 -e PORT=5002 dotnet-dockerapp-prod
+```
