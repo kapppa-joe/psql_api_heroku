@@ -4,7 +4,6 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-
 using NUnit.Framework;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,41 +11,33 @@ using project.Data;
 using project.Models;
 
 namespace unit_tests;
+
 public class TestNotesController
 {
     private HttpClient _httpClient;
     private readonly WebApplicationFactory<project.Startup> _factory;
-    
+
     private PsqlDbContext _dbContext;
+
     public TestNotesController()
     {
-        
         _factory = new WebApplicationFactory<project.Startup>().WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services =>
                 {
                     // remove the dbcontext of actual postgres db and stub it with a in memory sqlite db
-                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof (DbContextOptions < PsqlDbContext > ));
+                    var descriptor = services.SingleOrDefault(d =>
+                        d.ServiceType == typeof(DbContextOptions<PsqlDbContext>)
+                    );
 
-                    if (descriptor != null) {
+                    if (descriptor != null)
+                    {
                         services.Remove(descriptor);
                     }
-                    
+
                     services.AddDbContext<PsqlDbContext>(opt =>
                         opt.UseInMemoryDatabase("test_database")
                     );
-
-                    // try to get the dbcontext of test database and assign it to _dbContext
-                    // var sp = services.BuildServiceProvider();
-                    // using (var scope = sp.CreateScope())
-                    // {
-                    //     var scopedService = scope.ServiceProvider;
-                    //     _dbContext = scopedService.GetRequiredService<PsqlDbContext>();
-                    //     if (_dbContext == null) {
-                    //         throw new System.Exception("Fail to grab db context when setting up tests");
-                    //     }
-                    //     _dbContext.Database.EnsureCreated();
-                    // }
                 });
             }
         );
@@ -61,10 +52,6 @@ public class TestNotesController
     [SetUp]
     public void Setup()
     {
-        _httpClient = _factory.CreateClient(new WebApplicationFactoryClientOptions
-        {
-            AllowAutoRedirect = false
-        });
     }
 
     [Test]
@@ -79,24 +66,19 @@ public class TestNotesController
     public async Task GetNotes_responds_with_an_array_of_notes()
     {
         // Arrange
-        var newNote = new Note
-        {
-            id = 1,
-            Title = "Alpaca",
-            Content = "Llama"
-        };
+        var newNote = new Note { id = 1, Title = "Alpaca", Content = "Llama" };
         _dbContext.Notes.Add(newNote);
         await _dbContext.SaveChangesAsync();
 
-        var expected = new [] {newNote};
+        var expected = new[] {newNote};
 
         // Act
         var response = await _httpClient.GetAsync("/api/Notes");
-        
+
         var contentJson = await response.Content.ReadAsStringAsync();
-        JsonSerializerOptions options = new(JsonSerializerDefaults.Web){};
-        var responseBody = JsonSerializer.Deserialize<Note[]>(contentJson, options);
-        
+        JsonSerializerOptions options = new(JsonSerializerDefaults.Web) { };
+        var responseBody = Helper.ParseJsonToObject<Note[]>(contentJson);
+
         // Assert
         response.Should().Be200Ok();
         responseBody.Should().NotBeNull();
