@@ -1,7 +1,7 @@
 using System.Text.Json;
 
 namespace unit_tests;
-public class Helper
+public static class Helper
 {
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { };
 

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using NUnit.Framework;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,9 +73,7 @@ public class TestNotesController
 
         // Act
         var response = await _httpClient.GetAsync("/api/Notes");
-
         var contentJson = await response.Content.ReadAsStringAsync();
-        JsonSerializerOptions options = new(JsonSerializerDefaults.Web) { };
         var responseBody = Helper.ParseJsonToObject<Note[]>(contentJson);
 
         // Assert
