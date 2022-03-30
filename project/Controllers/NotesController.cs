@@ -19,12 +19,14 @@ public class NotesController : ControllerBase
     public NotesController(PsqlDbContext context)
     {
         _context = context;
+        
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Note>>> GetNotes()
     {
-        return await _context.Notes.ToListAsync();
+        var notes = await _context.Notes.ToListAsync();
+        return Ok(notes);
     }
 
     [HttpGet("{id}")]
@@ -36,7 +38,7 @@ public class NotesController : ControllerBase
             return NotFound();
         }
 
-        return note;
+        return Ok(note);
     }
 
     [HttpPost]
