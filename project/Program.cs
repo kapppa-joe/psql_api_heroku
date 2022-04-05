@@ -15,7 +15,18 @@ public class Program
 
     public static void Main(string[] args)
     {
-        CreateHostBuilder(args).Build().Run();
+        // CreateHostBuilder(args).Build().Run();
+        
+        var host = CreateHostBuilder(args).Build();
+
+        // For auto run migration, comment out below
+        // using (var scope = host.Services.CreateScope())
+        // {
+        //     var db = scope.ServiceProvider.GetRequiredService<PsqlDbContext>();
+        //     db.Database.Migrate();
+        // }
+
+        host.Run();
     }
 
     // Below is old code from dotnet default webapi project.
