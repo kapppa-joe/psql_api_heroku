@@ -41,12 +41,13 @@ public class Startup
             //     builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
             options.AddPolicy(name: "AllowTestingFrontend",
-                builder =>
+                policy =>
                 {
-                    builder.WithOrigins("https://skillsforcare-appointments.herokuapp.com/",
-                            "https://localhost",
+                    policy.WithOrigins(
+                            "https://skillsforcare-appointments.herokuapp.com/", 
+                            "https://localhost", 
                             "http://localhost")
-                        .AllowAnyHeader().AllowAnyMethod());
+                        .AllowAnyHeader().AllowAnyMethod();
                 });
         });
 
