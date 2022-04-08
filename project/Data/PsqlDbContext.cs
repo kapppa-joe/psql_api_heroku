@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using project.Models;
+// using project.Models.appointment;
 
 namespace project.Data;
 
@@ -12,4 +13,6 @@ public class PsqlDbContext : DbContext
     }
 
     public DbSet<Note> Notes => Set<Note>();
+
+    public DbSet<Appointment> Appointments => Set<Appointment>();
 }
