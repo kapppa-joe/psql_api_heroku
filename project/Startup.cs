@@ -12,32 +12,42 @@ public class Startup
     {
         Configuration = configuration;
     }
-    
+
     public IConfiguration Configuration { get; }
 
     public void ConfigureServices(IServiceCollection services)
     {
         // try grab the db connection string for Heroku first.
         string connectionString = ConfigurationHelper.GetHerokuConnectionString();
-        
+
         // if failed, try to grab a connection string from env (for docker dev)
         if (string.IsNullOrEmpty(connectionString))
         {
             // if not found in env, assume it is in local dev environment and use the db conn string from config file.
-            connectionString = 
-                Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
-                    ?? Configuration.GetConnectionString("DefaultConnection");
+            connectionString =
+                Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+                ?? Configuration.GetConnectionString("DefaultConnection");
         }
-        
-        
+
+
         services.AddDbContext<PsqlDbContext>(options =>
             options.UseNpgsql(connectionString)
         );
-        
+
         services.AddCors(options =>
         {
-            options.AddPolicy("AllowAllOrigins",
-                builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            // change cors policy to only allow our frontend & localhost.
+            // options.AddPolicy("AllowAllOrigins",
+            //     builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+
+            options.AddPolicy(name: "AllowTestingFrontend",
+                builder =>
+                {
+                    builder.WithOrigins("https://skillsforcare-appointments.herokuapp.com/",
+                            "https://localhost",
+                            "http://localhost")
+                        .AllowAnyHeader().AllowAnyMethod());
+                });
         });
 
         // services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -51,17 +61,17 @@ public class Startup
         {
             app.UseDeveloperExceptionPage();
         }
-        
-        
+
+
         app.UseHttpsRedirection();
 
         app.UseRouting();
 
         app.UseAuthorization();
-        
-        app.UseCors("AllowAllOrigins");
 
-        app.UseEndpoints((endpoints => { endpoints.MapControllers();}));
+        // app.UseCors("AllowAllOrigins");
+        app.UseCors("AllowTestingFrontend");
 
+        app.UseEndpoints((endpoints => { endpoints.MapControllers(); }));
     }
 }
