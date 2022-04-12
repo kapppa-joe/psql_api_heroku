@@ -12,6 +12,7 @@ using project.Models;
 namespace project.Controllers
 {
     [Route("api/[controller]")]
+    [Route("api/[controller]s")]
     [ApiController]
     public class AppointmentController : ControllerBase
     {
