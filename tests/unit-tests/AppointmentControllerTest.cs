@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ using NUnit.Framework;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol;
 using project;
 using project.Data;
 using project.Models;
@@ -53,89 +55,115 @@ public class TestAppointmentController
             .Options;
         _dbContext = new PsqlDbContext(options);
     }
-    
-        [SetUp]
-        public void Setup()
-        {
-            // clear the database before each test.
-            _dbContext.Appointments.RemoveRange(_dbContext.Appointments);
-            _dbContext.SaveChanges();
-        }
 
-        [Test]
-        public async Task GetAppointment_responds_with_OK_and_empty_array()
-        {
-            var response = await _httpClient.GetAsync("/api/appointment");
-            
-            response.Should().Be200Ok();
-            
-            var contentJson = await response.Content.ReadAsStringAsync();
-            
-            contentJson.Should().BeEquivalentTo("[]");
-        }
-        
-        [Test]
-        public async Task Endpoint_in_plural_form_also_works()
-        {
-            var response = await _httpClient.GetAsync("/api/appointments");
-            
-            response.Should().Be200Ok();
-            
-            var contentJson = await response.Content.ReadAsStringAsync();
-            
-            contentJson.Should().BeEquivalentTo("[]");
-        }
-    
-        [Test]
-        public async Task GetAppointment_responds_with_an_array_of_notes()
-        {
-            // Arrange
-            var testAppointment = new Appointment()
-            {
-                id = 1, 
-                Name = "Al Parker", 
-                Email = "alpaca@llama.com",
-                Date = "25th Apr Monday",
-                Type = "Consultation"
-            };
-            _dbContext.Appointments.Add(testAppointment);
-            await _dbContext.SaveChangesAsync();
-        
-            var expected = new[] {testAppointment};
-        
-            // Act
-            var response = await _httpClient.GetAsync("/api/appointment");
-            var contentJson = await response.Content.ReadAsStringAsync();
-            var responseBody = Helper.ParseJsonToObject<Appointment[]>(contentJson);
-        
-            // Assert
-            response.Should().Be200Ok();
-            responseBody.Should().NotBeNull();
-            responseBody.Should().BeEquivalentTo(expected);
-        }
+    [SetUp]
+    public void Setup()
+    {
+        // clear the database before each test.
+        _dbContext.Appointments.RemoveRange(_dbContext.Appointments);
+        _dbContext.SaveChanges();
+    }
 
-        [Test]
-        public async Task PostAppointment_respond_with_201_and_new_data()
+    [Test]
+    public async Task GetAppointment_responds_with_OK_and_empty_array()
+    {
+        var response = await _httpClient.GetAsync("/api/appointment");
+
+        response.Should().Be200Ok();
+
+        var contentJson = await response.Content.ReadAsStringAsync();
+
+        contentJson.Should().BeEquivalentTo("[]");
+    }
+
+    [Test]
+    public async Task Endpoint_in_plural_form_also_works()
+    {
+        var response = await _httpClient.GetAsync("/api/appointments");
+
+        response.Should().Be200Ok();
+
+        var contentJson = await response.Content.ReadAsStringAsync();
+
+        contentJson.Should().BeEquivalentTo("[]");
+    }
+
+    [Test]
+    public async Task GetAppointment_responds_with_an_array_of_notes()
+    {
+        // Arrange
+        var testAppointment = new Appointment()
         {
-            // Arrange
-            var testAppointment = new Appointment()
-            {
-                Name = "Kyle", 
-                Email = "alpaca@llama.com",
-                Date = "25th Apr Monday",
-                Type = "Consultation"
-            };
-            
-            // Act
-            var response = await _httpClient.PostAsJsonAsync("/api/appointment", testAppointment);
-            var contentJson = await response.Content.ReadAsStringAsync();
-            var responseBody = Helper.ParseJsonToObject<Appointment>(contentJson);
+            id = 1,
+            Name = "Al Parker",
+            Email = "alpaca@llama.com",
+            Date = "25th Apr Monday",
+            Type = "Consultation"
+        };
+        _dbContext.Appointments.Add(testAppointment);
+        await _dbContext.SaveChangesAsync();
+
+        var expected = new[] {testAppointment};
+
+        // Act
+        var response = await _httpClient.GetAsync("/api/appointment");
+        var contentJson = await response.Content.ReadAsStringAsync();
+        var responseBody = Helper.ParseJsonToObject<Appointment[]>(contentJson);
+
+        // Assert
+        response.Should().Be200Ok();
+        responseBody.Should().NotBeNull();
+        responseBody.Should().BeEquivalentTo(expected);
+    }
+
+    [Test]
+    public async Task PostAppointment_respond_with_201_and_new_data()
+    {
+        // Arrange
+        var testAppointment = new Appointment()
+        {
+            Name = "Kyle",
+            Email = "alpaca@llama.com",
+            Date = "25th Apr Monday",
+            Type = "Consultation"
+        };
+
+        // Act
+        var response = await _httpClient.PostAsJsonAsync("/api/appointment", testAppointment);
+        var contentJson = await response.Content.ReadAsStringAsync();
+        var responseBody = Helper.ParseJsonToObject<Appointment>(contentJson);
+
+        // Assert
+        response.Should().Be201Created();
+        responseBody.Should().NotBeNull();
+        responseBody.Should().BeEquivalentTo(testAppointment, options => options
+            .Excluding(o => o.id)
+            .Excluding(o => o.created_at));
+    }
+
+    [Test]
+    public async Task PostAppointment_respond_with_400_for_incomplete_data()
+    {
+        // Arrange
+        string jsonData = @"{
+            'name': 'Alpaca',
+            'email': 'llama@kyle.com',
+            'type': 'Consultation',
+            // date field missing.
+        }";
+
+        var testJsonObj = JObject.Parse(jsonData);
         
-            // Assert
-            response.Should().Be201Created();
-            responseBody.Should().NotBeNull();
-            responseBody.Should().BeEquivalentTo(testAppointment, options => options
-                .Excluding(o => o.id)
-                .Excluding(o => o.created_at));
-        }
+        // Act
+        var response = await _httpClient.PostAsync("/api/appointment", 
+            new StringContent(JsonConvert.SerializeObject(testJsonObj),
+            Encoding.UTF8, "application/json"));
+        var contentJson = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        response.Should().Be400BadRequest();
+        contentJson.Should().Contain("One or more validation errors occurred.");
+        contentJson.Should().Contain("The Date field is required.");
+        
+    }
 }
