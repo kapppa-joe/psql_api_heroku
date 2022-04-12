@@ -1,11 +1,16 @@
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using FluentAssertions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using project;
 using project.Data;
 using project.Models;
@@ -56,7 +61,7 @@ public class TestAppointmentController
             _dbContext.Appointments.RemoveRange(_dbContext.Appointments);
             _dbContext.SaveChanges();
         }
-    
+
         [Test]
         public async Task GetAppointment_responds_with_OK_and_empty_array()
         {
@@ -109,10 +114,28 @@ public class TestAppointmentController
             responseBody.Should().BeEquivalentTo(expected);
         }
 
-        // [Test]
-        // public async Task PostAppointment_respond_with_201()
-        // {
-        //     // Arrange
-        //     var reqBody = "{"name": }";
-        // }
+        [Test]
+        public async Task PostAppointment_respond_with_201_and_new_data()
+        {
+            // Arrange
+            var testAppointment = new Appointment()
+            {
+                Name = "Kyle", 
+                Email = "alpaca@llama.com",
+                Date = "25th Apr Monday",
+                Type = "Consultation"
+            };
+            
+            // Act
+            var response = await _httpClient.PostAsJsonAsync("/api/appointment", testAppointment);
+            var contentJson = await response.Content.ReadAsStringAsync();
+            var responseBody = Helper.ParseJsonToObject<Appointment>(contentJson);
+        
+            // Assert
+            response.Should().Be201Created();
+            responseBody.Should().NotBeNull();
+            responseBody.Should().BeEquivalentTo(testAppointment, options => options
+                .Excluding(o => o.id)
+                .Excluding(o => o.created_at));
+        }
 }
