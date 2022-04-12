@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
@@ -59,6 +60,13 @@ public class TestAppointmentController
         // clear the database before each test.
         _dbContext.Appointments.RemoveRange(_dbContext.Appointments);
         _dbContext.SaveChanges();
+    }
+
+    [Test]
+    public async Task Responds_with_404_for_non_exist_endpoint()
+    {
+        var response = await _httpClient.GetAsync("/api/not_exist_end_point");
+        response.Should().Be404NotFound();
     }
 
     [Test]
@@ -157,18 +165,58 @@ public class TestAppointmentController
         }";
 
         var testJsonObj = JObject.Parse(jsonData);
-        
+
         // Act
-        var response = await _httpClient.PostAsync("/api/appointment", 
+        var response = await _httpClient.PostAsync("/api/appointment",
             new StringContent(JsonConvert.SerializeObject(testJsonObj),
-            Encoding.UTF8, "application/json"));
+                Encoding.UTF8, "application/json"));
         var contentJson = await response.Content.ReadAsStringAsync();
 
         // Assert
         response.Should().Be400BadRequest();
         contentJson.Should().Contain("One or more validation errors occurred.");
         contentJson.Should().Contain("The Date field is required.");
-        
     }
-    
+
+    [Test]
+    public async Task PostAppointment_respond_with_400_for_req_with_no_body()
+    {
+        var response = await _httpClient.PostAsJsonAsync("/api/appointment", "");
+        var contentJson = await response.Content.ReadAsStringAsync();
+
+        response.Should().Be400BadRequest();
+        contentJson.Should().Contain("One or more validation errors occurred.");
+    }
+
+    [Test]
+    public async Task PostAppointment_successful_run_add_new_record_in_database()
+    {
+        // Arrange
+        string jsonData = @"{
+                'name': 'Alpaca',
+                'email': 'llama@kyle.com',
+                'type': 'Consultation',
+                'date': '25th Mon 14:00'
+            }";
+
+        var testJsonObj = JObject.Parse(jsonData);
+
+        // Act
+        var response = await _httpClient.PostAsync("/api/appointment",
+            new StringContent(JsonConvert.SerializeObject(testJsonObj),
+                Encoding.UTF8, "application/json"));
+        var contentJson = await response.Content.ReadAsStringAsync();
+
+        // Assert
+        response.Should().Be201Created();
+        var responseBody = JObject.Parse(contentJson);
+        int newRecordId = responseBody["id"].Value<int>();
+        var newRecord = _dbContext.Appointments.Find(newRecordId);
+        
+        newRecord.Should().NotBeNull();
+        newRecord.Name.Should().Be("Alpaca");
+        newRecord.Email.Should().Be("llama@kyle.com");
+        newRecord.Type.Should().Be("Consultation");
+        newRecord.Date.Should().Be("25th Mon 14:00");
+    }
 }
