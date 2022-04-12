@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
@@ -12,7 +10,6 @@ using NUnit.Framework;
 using FluentAssertions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Protocol;
 using project;
 using project.Data;
 using project.Models;
@@ -89,21 +86,28 @@ public class TestAppointmentController
     }
 
     [Test]
-    public async Task GetAppointment_responds_with_an_array_of_notes()
+    public async Task GetAppointment_responds_with_an_array_of_appointments()
     {
         // Arrange
         var testAppointment = new Appointment()
         {
-            id = 1,
             Name = "Al Parker",
             Email = "alpaca@llama.com",
             Date = "25th Apr Monday",
             Type = "Consultation"
         };
+        var testAppointment2 = new Appointment()
+        {
+            Name = "Kyle",
+            Email = "kyle@llama.com",
+            Date = "26th Apr Tuesday",
+            Type = "Training"
+        };
         _dbContext.Appointments.Add(testAppointment);
+        _dbContext.Appointments.Add(testAppointment2);
         await _dbContext.SaveChangesAsync();
 
-        var expected = new[] {testAppointment};
+        var expected = new[] {testAppointment, testAppointment2};
 
         // Act
         var response = await _httpClient.GetAsync("/api/appointment");
@@ -137,8 +141,8 @@ public class TestAppointmentController
         response.Should().Be201Created();
         responseBody.Should().NotBeNull();
         responseBody.Should().BeEquivalentTo(testAppointment, options => options
-            .Excluding(o => o.id)
-            .Excluding(o => o.created_at));
+            .Excluding(obj => obj.id)
+            .Excluding(obj => obj.created_at));
     }
 
     [Test]
@@ -166,4 +170,5 @@ public class TestAppointmentController
         contentJson.Should().Contain("The Date field is required.");
         
     }
+    
 }
