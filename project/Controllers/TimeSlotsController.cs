@@ -14,7 +14,9 @@ public class TimeSlotsController : ControllerBase
         var today = DateTime.Today;
         var next28Days = Enumerable.Range(1, 28).Select(x =>
         {
-            var date = new DateTime(today.Year, today.Month, today.Day + x, 11, 0, 0);
+            // var days_added = new TimeSpan(24 * x, 0, 0);
+            var newDate = DateTime.Today.AddDays(x);
+            var date = new DateTime(newDate.Year, newDate.Month, newDate.Day, 11, 0, 0);
             return date;
         });
         var workDaysOnly = next28Days.Where(date =>
