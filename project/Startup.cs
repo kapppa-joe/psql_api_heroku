@@ -40,18 +40,16 @@ public class Startup
             options.AddPolicy("AllowAllOrigins",
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
-            // options.AddPolicy(name: "AllowTestingFrontend",
-            //     policy =>
-            //     {
-            //         policy.WithOrigins(
-            //                 "https://skillsforcare-appointments.herokuapp.com/", 
-            //                 "https://localhost", 
-            //                 "http://localhost")
-            //             .AllowAnyHeader().AllowAnyMethod();
-            //     });
+            options.AddPolicy(name: "AllowTestingFrontend",
+                policy =>
+                {
+                    policy.WithOrigins(
+                            "https://skillsforcare-appointments.herokuapp.com", 
+                            "https://localhost", 
+                            "http://localhost")
+                        .AllowAnyHeader().AllowAnyMethod();
+                });
         });
-
-        // services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
         services.AddControllers();
     }
@@ -70,8 +68,8 @@ public class Startup
 
         app.UseAuthorization();
 
-        app.UseCors("AllowAllOrigins");
-        // app.UseCors("AllowTestingFrontend");
+        // app.UseCors("AllowAllOrigins");
+        app.UseCors("AllowTestingFrontend");
 
         app.UseEndpoints((endpoints => { endpoints.MapControllers(); }));
     }
