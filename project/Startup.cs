@@ -37,8 +37,8 @@ public class Startup
         services.AddCors(options =>
         {
             // change cors policy to only allow our frontend & localhost.
-            options.AddPolicy("AllowAllOrigins",
-                builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+            // options.AddPolicy("AllowAllOrigins",
+            //     builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
             options.AddPolicy(name: "AllowTestingFrontend",
                 policy =>
@@ -46,8 +46,7 @@ public class Startup
                     policy.WithOrigins(
                             "https://skillsforcare-appointments.herokuapp.com", 
                             "https://localhost", 
-                            "http://localhost")
-                        .AllowAnyHeader().AllowAnyMethod();
+                            "http://localhost");
                 });
         });
 
@@ -66,11 +65,11 @@ public class Startup
 
         app.UseRouting();
 
-        app.UseAuthorization();
-
         // app.UseCors("AllowAllOrigins");
         app.UseCors("AllowTestingFrontend");
 
+        app.UseAuthorization();
+        
         app.UseEndpoints((endpoints => { endpoints.MapControllers(); }));
     }
 }
