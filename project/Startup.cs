@@ -45,8 +45,7 @@ public class Startup
                 {
                     policy.WithOrigins(
                             "https://skillsforcare-appointments.herokuapp.com", 
-                            "https://localhost", 
-                            "http://localhost");
+                            "http://localhost:3000");
                 });
         });
 
