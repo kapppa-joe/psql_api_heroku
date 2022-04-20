@@ -35,7 +35,7 @@ services:
       - APP_DB_NAME=dotnetproject
     volumes:
       - db_volume:/var/lib/postgresql/data
-      - ./project/dbscripts:/docker-entrypoint-initdb.d/
+      - ./project/dbscripts/01-init.sh:/docker-entrypoint-initdb.d/01-init.sh
     networks:
       - dotnetproject-dev
 
