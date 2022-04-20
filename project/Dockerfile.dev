@@ -11,12 +11,14 @@ RUN dotnet build
 # Explicitly ask for path to be added
 ENV PATH="${PATH}:/root/.dotnet/tools"
 RUN dotnet tool install --global dotnet-ef
-# RUN dotnet ef database update
 
+# commented out below to change the entrypoint to a shell script. 
+# this is to ensure dotnet db update got run at the right timing.
 # ENV ASPNETCORE_URLS=https://*:5002
 # CMD dotnet watch run
+
 RUN chmod +x dev-entrypoint.sh
 CMD /bin/bash dev-entrypoint.sh
 
-#use this if ASPNETCORE_URLS was ignored
-#CMD dotnet run --urls https://0.0.0.0:5002
+# use this if ASPNETCORE_URLS was ignored
+# CMD dotnet run --urls https://0.0.0.0:5002
