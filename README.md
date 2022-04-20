@@ -15,9 +15,12 @@ This should starts a webapi server and postgres db embedded in docker.
 
 Visit http://localhost:5002 and you should see the base endpoint.
 
-Note: You may have to run `dotnet ef database update` **within the web container** to set up the table in dockerized database.
+~~Note: You may have to run `dotnet ef database update` **within the web container** to set up the table in dockerized database.~~
 
-Or you may try to use the code in Program.cs for auto running migration every time.
+~~Or you may try to use the code in Program.cs for auto running migration every time.~~
+
+[updated 2022-04-20] The docker compose config should now run `dotnet ef database update` on its own, so probably it will just work fine.
+
 
 After you played with it, remember to shutdown the server by `docker-compose down`.
 
