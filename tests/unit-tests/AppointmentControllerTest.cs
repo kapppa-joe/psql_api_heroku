@@ -210,13 +210,16 @@ public class TestAppointmentController
         // Assert
         response.Should().Be201Created();
         var responseBody = JObject.Parse(contentJson);
-        int newRecordId = responseBody["id"].Value<int>();
+        int? newRecordId = responseBody["id"]?.Value<int>();
         var newRecord = _dbContext.Appointments.Find(newRecordId);
         
         newRecord.Should().NotBeNull();
-        newRecord.Name.Should().Be("Alpaca");
-        newRecord.Email.Should().Be("llama@kyle.com");
-        newRecord.Type.Should().Be("Consultation");
-        newRecord.Date.Should().Be("25th Mon 14:00");
+        if (newRecord is not null)
+        {
+            newRecord.Name.Should().Be("Alpaca");
+            newRecord.Email.Should().Be("llama@kyle.com");
+            newRecord.Type.Should().Be("Consultation");
+            newRecord.Date.Should().Be("25th Mon 14:00");
+        }
     }
 }

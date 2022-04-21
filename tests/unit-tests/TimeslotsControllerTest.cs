@@ -1,15 +1,9 @@
 using System;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using project.Data;
-
 namespace unit_tests;
 
 public class TimeslotsControllerTest

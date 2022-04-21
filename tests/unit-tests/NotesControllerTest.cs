@@ -81,25 +81,4 @@ public class TestNotesController
         responseBody.Should().NotBeNull();
         responseBody.Should().BeEquivalentTo(expected);
     }
-
-    // [Test]
-    // public void PostNotes_responds_with_200()
-    // {
-    //     var options = new DbContextOptionsBuilder<PsqlDbContext>()
-    //         .UseInMemoryDatabase(databaseName: "Test")
-    //         .Options;
-    //     var mockContext = new PsqlDbContext(options);
-    //
-    //     var controller = new NotesController(mockContext);
-    //     var newNote = new Note();
-    //     newNote.Title = "test title";
-    //     newNote.Content = "test content";
-    //     
-    //     var response = controller.PostNote(newNote);
-    //
-    //     mockContext.Notes.Count().Should().Be(1);a
-    //
-    //     // mockSet.Verify(m => m.Add(It.IsAny<Note>()), Times.Once());
-    //     // mockContext.Verify(m => m.SaveChanges(), Times.Once());
-    // }
 }
