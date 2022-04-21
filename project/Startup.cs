@@ -36,7 +36,7 @@ public class Startup
 
         services.AddCors(options =>
         {
-            change cors policy to only allow our frontend & localhost.
+            // change cors policy to only allow our frontend & localhost.
             options.AddPolicy("AllowAllOrigins",
                 builder => builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 
