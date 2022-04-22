@@ -1,15 +1,12 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Json;
-using System.Text;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using FluentAssertions;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using project;
 using project.Data;
@@ -115,7 +112,7 @@ public class TestAppointmentController
         _dbContext.Appointments.Add(testAppointment2);
         await _dbContext.SaveChangesAsync();
 
-        var expected = new[] {testAppointment, testAppointment2};
+        var expected = new[] { testAppointment, testAppointment2 };
 
         // Act
         var response = await _httpClient.GetAsync("/api/appointment");
@@ -124,15 +121,14 @@ public class TestAppointmentController
 
         // Assert
         response.Should().Be200Ok();
-        responseBody.Should().NotBeNull();
-        responseBody.Should().BeEquivalentTo(expected);
+        response.Should().BeAs(expected);
     }
 
     [Test]
     public async Task PostAppointment_respond_with_201_and_new_data()
     {
         // Arrange
-        var testAppointment = new Appointment()
+        var testAppointment = new
         {
             Name = "Kyle",
             Email = "alpaca@llama.com",
@@ -142,69 +138,66 @@ public class TestAppointmentController
 
         // Act
         var response = await _httpClient.PostAsJsonAsync("/api/appointment", testAppointment);
-        var contentJson = await response.Content.ReadAsStringAsync();
-        var responseBody = Helper.ParseJsonToObject<Appointment>(contentJson);
 
         // Assert
         response.Should().Be201Created();
-        responseBody.Should().NotBeNull();
-        responseBody.Should().BeEquivalentTo(testAppointment, options => options
-            .Excluding(obj => obj.id)
-            .Excluding(obj => obj.created_at));
+        response.Should().BeAs(new
+        {
+            Name = "Kyle",
+            Email = "alpaca@llama.com",
+            Date = "25th Apr Monday",
+            Type = "Consultation"
+        });
     }
 
     [Test]
     public async Task PostAppointment_respond_with_400_for_incomplete_data()
     {
         // Arrange
-        string jsonData = @"{
-            'name': 'Alpaca',
-            'email': 'llama@kyle.com',
-            'type': 'Consultation',
-            // date field missing.
-        }";
-
-        var testJsonObj = JObject.Parse(jsonData);
+        var testJsonObj = new
+        {
+            Name = "Alpaca",
+            Email = "llama@kyle.com",
+            Type = "Consultation"
+            // date field missing
+        };
 
         // Act
-        var response = await _httpClient.PostAsync("/api/appointment",
-            new StringContent(JsonConvert.SerializeObject(testJsonObj),
-                Encoding.UTF8, "application/json"));
+        var response = await _httpClient.PostAsJsonAsync("/api/appointment", testJsonObj);
         var contentJson = await response.Content.ReadAsStringAsync();
 
         // Assert
         response.Should().Be400BadRequest();
-        contentJson.Should().Contain("One or more validation errors occurred.");
-        contentJson.Should().Contain("The Date field is required.");
+        response.Should().HaveErrorMessage("The Date field is required.");
     }
 
     [Test]
     public async Task PostAppointment_respond_with_400_for_req_with_no_body()
     {
-        var response = await _httpClient.PostAsJsonAsync("/api/appointment", "");
+        var response = await _httpClient.PostAsJsonAsync("/api/appointment", new { });
         var contentJson = await response.Content.ReadAsStringAsync();
 
         response.Should().Be400BadRequest();
-        contentJson.Should().Contain("One or more validation errors occurred.");
+        response.Should().HaveErrorMessage("The Name field is required.");
+        response.Should().HaveErrorMessage("The Email field is required.");
+        response.Should().HaveErrorMessage("The Type field is required.");
+        response.Should().HaveErrorMessage("The Date field is required.");
     }
 
     [Test]
     public async Task PostAppointment_successful_run_add_new_record_in_database()
     {
         // Arrange
-        string jsonData = @"{
-                'name': 'Alpaca',
-                'email': 'llama@kyle.com',
-                'type': 'Consultation',
-                'date': '25th Mon 14:00'
-            }";
-
-        var testJsonObj = JObject.Parse(jsonData);
+        var testJsonObj = new
+        {
+            Name = "Kyle",
+            Email = "kyle@llama.com",
+            Date = "25th Mon 14:00",
+            Type = "Consultation"
+        };
 
         // Act
-        var response = await _httpClient.PostAsync("/api/appointment",
-            new StringContent(JsonConvert.SerializeObject(testJsonObj),
-                Encoding.UTF8, "application/json"));
+        var response = await _httpClient.PostAsJsonAsync("/api/appointment", testJsonObj);
         var contentJson = await response.Content.ReadAsStringAsync();
 
         // Assert
@@ -212,12 +205,12 @@ public class TestAppointmentController
         var responseBody = JObject.Parse(contentJson);
         int? newRecordId = responseBody["id"]?.Value<int>();
         var newRecord = _dbContext.Appointments.Find(newRecordId);
-        
+
         newRecord.Should().NotBeNull();
         if (newRecord is not null)
         {
-            newRecord.Name.Should().Be("Alpaca");
-            newRecord.Email.Should().Be("llama@kyle.com");
+            newRecord.Name.Should().Be("Kyle");
+            newRecord.Email.Should().Be("kyle@llama.com");
             newRecord.Type.Should().Be("Consultation");
             newRecord.Date.Should().Be("25th Mon 14:00");
         }
